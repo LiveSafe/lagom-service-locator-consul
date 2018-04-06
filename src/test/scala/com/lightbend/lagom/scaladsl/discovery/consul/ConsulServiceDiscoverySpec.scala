@@ -8,8 +8,10 @@ import com.lightbend.lagom.internal.client.CircuitBreakers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpecLike }
 import play.api.{ Configuration, Environment }
-
 import scala.collection.JavaConverters._
+
+import livesafe.ConsulServiceLocator
+import livesafe.lagom.discovery.consul.{ ConsulConfig, ConsulServiceLocator }
 
 class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFutures {
   val config = Configuration.load(Environment.simple())
