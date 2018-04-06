@@ -1,20 +1,12 @@
 #  Lagom Service Locator for Consul
 
-**DISCLAIMER: This is work in progress. This code has never been used in anger. Use it as a starting point and adapt it as-needed. I'm happy to take pull requests.**
-
-This project implements the [Lagom](http://lightbend.com/lagom) `ServiceLocator` interface for [Consul](https://www.consul.io) and provides a Consul-based service registry for registering and unregistering service from within the services.
+Forked from jboner/lagom-service-locator-consul, this project implements the [Lagom](http://lightbend.com/lagom) `ServiceLocator` interface for [Consul](https://www.consul.io) and provides a Consul-based service registry
+for registering and unregistering service from within the services.
 
 ## Register service locator in Lagom
 
-To use it the first step is to register the service locator in Lagom by using Guice, see `ConsulServiceLocatorModule`. It is enabled in the `reference.conf` file:
-```
-# Enables the ConsulServiceLocatorModule to register the ConsulServiceLocator.
-# The ConsulServiceLocator implements Lagom's ServiceLocator
-play.modules.enabled += "com.lightbend.lagom.discovery.consul.ConsulServiceLocatorModule"
-```
-
-This service locator is only enabled during `Prod` mode, during `Dev` mode the regular development service locator is used.
-When you are using this library then you should *not* use the `sbt-conductr` sbt plugin. 
+To use it, simply mix in ConsulServiceLocatorComponents to your Lagom application. This will
+override `serviceLocator` with an instance of ConsulServiceLocator.
 
 ## Routing to service instances
 
