@@ -8,6 +8,7 @@ case class ConsulConfig(
   agentPort: Int,
   scheme: String,
   routingPolicy: RoutingPolicy,
+  registerService: Boolean
 )
 
 object ConsulConfig {
@@ -16,7 +17,8 @@ object ConsulConfig {
       config.getString("lagom.discovery.consul.agent-hostname"),
       config.getInt("lagom.discovery.consul.agent-port"),
       config.getString("lagom.discovery.consul.uri-scheme"),
-      RoutingPolicy(config.getString("lagom.discovery.consul.routing-policy"))
+      RoutingPolicy(config.getString("lagom.discovery.consul.routing-policy")),
+      config.getBoolean("lagom.discovery.consul.register-service")
     )
   }
 }

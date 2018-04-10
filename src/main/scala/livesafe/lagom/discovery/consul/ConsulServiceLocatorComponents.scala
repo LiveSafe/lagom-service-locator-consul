@@ -4,6 +4,7 @@ import java.net.InetAddress
 import java.util.UUID
 
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
 import com.ecwid.consul.v1.ConsulClient
 import com.ecwid.consul.v1.agent.model.NewService
@@ -29,11 +30,11 @@ trait ConsulServiceLocatorComponents
   lazy val consulConfig: ConsulConfig = ConsulConfig.fromConfig(config)
   lazy val consulClient: ConsulClient = new ConsulClient(consulConfig.agentHostname, consulConfig.agentPort)
 
-  lazy override val serviceLocator: ServiceLocator = new ConsulServiceLocator(consulClient, consulConfig, circuitBreakers)(executionContext)
+  lazy override val serviceLocator: ServiceLocator = new ConsulServiceLocator(consulClient, consulConfig, circuitBreakersPanel)(executionContext)
 
-  private def registerService() = {
+  private def registerService(): Unit = {
     val hostname = InetAddress.getLocalHost().getHostAddress()
-    val port = config.getInt("http.port")
+    val port = config.getInt("play.http.port")
     val healthEndpoint = "healthcheck"
     val healthCheckUrl = s"http://${hostname}:${port}/${healthEndpoint}"
 
@@ -53,14 +54,21 @@ trait ConsulServiceLocatorComponents
       service.setCheck(serviceCheck)
       service
     }
-    val response = consulClient.agentServiceRegister(service)
-    log.info("Registered service {} with {}:{} at {}:{} with response \n{}", serviceInfo.serviceName, hostname, port, consulConfig.agentHostname, consulConfig.agentPort, response.toString)
+    Try(consulClient.agentServiceRegister(service)) match {
+      case Success(response) =>
+        log.info(s"Registered service ${serviceInfo.serviceName} with ${hostname}:${port} at ${consulConfig.agentHostname}:${consulConfig.agentPort} with response \n${response.toString}")
+      case Failure(ex) =>
+        log.error(s"Failed to register service ${serviceInfo.serviceName} with ${hostname}:${port} at ${consulConfig.agentHostname}:${consulConfig.agentPort}", ex)
+
+    }
   }
 
-  registerService()
+  if (consulConfig.registerService) {
+    registerService()
+  }
 
   applicationLifecycle.addStopHook(() =>
-     Future { consulClient.agentServiceDeregister(consulServiceId) }
+     Future { consulClient.agentServiceDeregister(consulServiceId) }(executionContext)
    )
 
 }

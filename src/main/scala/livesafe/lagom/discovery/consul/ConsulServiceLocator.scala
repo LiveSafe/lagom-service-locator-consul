@@ -9,14 +9,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 import com.ecwid.consul.v1.catalog.model.CatalogService
 import com.ecwid.consul.v1.{ ConsulClient, QueryParams }
-import com.lightbend.lagom.internal.client.CircuitBreakers
 import com.lightbend.lagom.scaladsl.api.Descriptor
-import com.lightbend.lagom.scaladsl.client.CircuitBreakingServiceLocator
+import com.lightbend.lagom.scaladsl.client.{ CircuitBreakersPanel, CircuitBreakingServiceLocator }
 
 class ConsulServiceLocator(
   client: ConsulClient,
   config: ConsulConfig,
-  circuitBreakers: CircuitBreakers
+  circuitBreakers: CircuitBreakersPanel
 )(implicit ec: ExecutionContext)
   extends CircuitBreakingServiceLocator(circuitBreakers) {
 
