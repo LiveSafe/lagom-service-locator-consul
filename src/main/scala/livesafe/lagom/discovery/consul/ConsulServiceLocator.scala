@@ -63,7 +63,7 @@ class ConsulServiceLocator(
     services.apply(currentIndex)
   }
 
-  private def serviceToUri(service: CatalogService): URI = {
+  private[consul] def serviceToUri(service: CatalogService): URI = {
     val address = service.getServiceAddress
       val serviceAddress =
         if (address.trim.isEmpty || address == "localhost") InetAddress.getLoopbackAddress.getHostAddress
@@ -71,6 +71,6 @@ class ConsulServiceLocator(
       new URI(s"${config.scheme}://$serviceAddress:${service.getServicePort}")
   }
 
-  private def toURIs(services: List[CatalogService]): List[URI] = services.map(serviceToUri)
+  private[consul] def toURIs(services: List[CatalogService]): List[URI] = services.map(serviceToUri)
 
 }

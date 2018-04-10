@@ -1,29 +1,29 @@
-package com.lightbend.lagom.scaladsl.discovery.consul
+package livesafe.lagom.discovery.consul
 
 import java.net.{ InetAddress, URI }
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
+
 import com.ecwid.consul.v1.agent.model.NewService
 import com.ecwid.consul.v1.{ ConsulClient, QueryParams }
-import com.lightbend.lagom.internal.client.CircuitBreakers
+import com.lightbend.lagom.scaladsl.client.CircuitBreakersPanel
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpecLike }
 import play.api.{ Configuration, Environment }
-import scala.collection.JavaConverters._
-
-import livesafe.ConsulServiceLocator
-import livesafe.lagom.discovery.consul.{ ConsulConfig, ConsulServiceLocator }
 
 class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFutures {
-  val config = Configuration.load(Environment.simple())
+  val config = Configuration.load(Environment.simple()).underlying
   val testTimeoutInSeconds: Long = 5
   val localAddress = InetAddress.getLoopbackAddress.getHostAddress
-
 
   def withServiceDiscovery(testCode: ConsulServiceLocator => ConsulClient => Any): Unit = {
     import scala.concurrent.ExecutionContext.Implicits._
     val client = new ConsulClient("localhost")
-    val cbs: CircuitBreakers = new CircuitBreakers(null, null, null)
-    val locator = new ConsulServiceLocator(client, new ConsulConfig.ConsulConfigImpl(config), cbs)
+    val cbs: CircuitBreakersPanel = new CircuitBreakersPanel {
+      override def withCircuitBreaker[T](id: String)(body: => Future[T]): Future[T] = body
+    }
+    val locator = new ConsulServiceLocator(client, ConsulConfig.fromConfig(config), cbs)
     testCode(locator)(client)
   }
 
@@ -100,7 +100,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
             withRegisteredService(client)(srv4, 9007, s"$srv4-3") {
               Thread.sleep(500)
 
-              val services = client.getCatalogService(srv4, QueryParams.DEFAULT).getValue.asScala.toList
+              val services = locator.toURIs(client.getCatalogService(srv4, QueryParams.DEFAULT).getValue.asScala.toList)
               services.size shouldBe 3
 
               val serviceURI1 = locator.pickRoundRobinInstance(srv4, services)
@@ -130,7 +130,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
           withRegisteredService(client)(srv5, 9009, s"$srv5-2") {
             Thread.sleep(500)
 
-            val services1 = client.getCatalogService(srv5, QueryParams.DEFAULT).getValue.asScala.toList
+            val services1 = locator.toURIs(client.getCatalogService(srv5, QueryParams.DEFAULT).getValue.asScala.toList)
             services1.size shouldBe 2
 
             val serviceURI1 = locator.pickRoundRobinInstance(srv5, services1)
@@ -147,7 +147,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
 
             withRegisteredService(client)(srv5, 9010, s"$srv5-3") {
               Thread.sleep(500)
-              val services2 = client.getCatalogService(srv5, QueryParams.DEFAULT).getValue.asScala.toList
+              val services2 = locator.toURIs(client.getCatalogService(srv5, QueryParams.DEFAULT).getValue.asScala.toList)
               services2.size shouldBe 3
 
               val serviceURI4 = locator.pickRoundRobinInstance(srv5, services2)
@@ -172,7 +172,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
 
               Thread.sleep(500)
 
-              val services1 = client.getCatalogService(srv6, QueryParams.DEFAULT).getValue.asScala.toList
+              val services1 = locator.toURIs(client.getCatalogService(srv6, QueryParams.DEFAULT).getValue.asScala.toList)
               services1.size shouldBe 3
 
               val serviceURI1 = locator.pickRoundRobinInstance(srv6, services1)
@@ -182,7 +182,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
             }
             Thread.sleep(500)
 
-            val services2 = client.getCatalogService(srv6, QueryParams.DEFAULT).getValue.asScala.toList
+            val services2 = locator.toURIs(client.getCatalogService(srv6, QueryParams.DEFAULT).getValue.asScala.toList)
             services2.size shouldBe 2
 
             val serviceURI2 = locator.pickRoundRobinInstance(srv6, services2)
@@ -205,7 +205,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
 
               Thread.sleep(500)
 
-              val services = client.getCatalogService(srv7, QueryParams.DEFAULT).getValue.asScala.toList
+              val services = locator.toURIs(client.getCatalogService(srv7, QueryParams.DEFAULT).getValue.asScala.toList)
               services.size shouldBe 3
 
               locator.pickRandomInstance(services).getHost shouldBe localAddress
@@ -224,7 +224,7 @@ class ConsulServiceDiscoverySpec extends WordSpecLike with Matchers with ScalaFu
             withRegisteredService(client)(srv8, 9019, s"$srv8-3") {
               Thread.sleep(500)
 
-              val services = client.getCatalogService(srv8, QueryParams.DEFAULT).getValue.asScala.toList
+              val services = locator.toURIs(client.getCatalogService(srv8, QueryParams.DEFAULT).getValue.asScala.toList)
               services.size shouldBe 3
 
               val serviceURI1 = locator.pickFirstInstance(services)

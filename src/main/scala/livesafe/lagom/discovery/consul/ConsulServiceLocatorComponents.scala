@@ -1,4 +1,4 @@
-package livesafe.lagom.discovery.consul
+package livesafe.livesafe.lagom.discovery.consul
 
 import java.net.InetAddress
 import java.util.UUID
@@ -10,6 +10,7 @@ import com.ecwid.consul.v1.ConsulClient
 import com.ecwid.consul.v1.agent.model.NewService
 import com.lightbend.lagom.scaladsl.api.ServiceLocator
 import com.lightbend.lagom.scaladsl.client.{ CircuitBreakerComponents, LagomServiceClientComponents }
+import livesafe.lagom.discovery.consul.{ ConsulConfig, ConsulServiceLocator }
 import org.slf4j.{ Logger, LoggerFactory }
 
 /**
