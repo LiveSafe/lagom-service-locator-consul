@@ -1,4 +1,4 @@
-package livesafe.livesafe.lagom.discovery.consul
+package livesafe.lagom.discovery.consul
 
 import java.net.InetAddress
 import java.util.UUID
@@ -10,20 +10,13 @@ import com.ecwid.consul.v1.ConsulClient
 import com.ecwid.consul.v1.agent.model.NewService
 import com.lightbend.lagom.scaladsl.api.ServiceLocator
 import com.lightbend.lagom.scaladsl.client.{ CircuitBreakerComponents, LagomServiceClientComponents }
-import livesafe.lagom.discovery.consul.{ ConsulConfig, ConsulServiceLocator }
 import org.slf4j.{ Logger, LoggerFactory }
 
 /**
  * This creates a ConsulServiceLocator and binds it to the 'serviceLocator' member of 'LagomServiceClientComponents'
  * Additionally, it registers itself as a service with consul, and adds a shutdown hook to de-register
  */
-trait ConsulServiceLocatorComponents
-  // extends CircuitBreakerComponents
-{ this: LagomServiceClientComponents with CircuitBreakerComponents =>
-  //def actorSystem: ActorSystem
-  // def configuration: Configuration
-  //def executionContext: ExecutionContext
-  //def circuitBreakerMetricsProvider: CircuitBreakerMetricsProvider
+trait ConsulServiceLocatorComponents { this: LagomServiceClientComponents with CircuitBreakerComponents =>
 
   private final val log: Logger = LoggerFactory.getLogger(getClass)
 
