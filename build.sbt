@@ -16,17 +16,19 @@ buildInfoKeys := Seq(name, version, scalaVersion, sbtVersion)
 buildInfoPackage := "com.livesafe.lagom.discovery.consul"
 buildInfoUsePackageAsPath := true
 
-s3region := com.amazonaws.regions.Regions.US_EAST_1
-
 /** Scala version must be part of the artifact id. */
 crossPaths := true
 publishArtifact in(Test, packageBin) := false // Test artifacts are not desired
-publishMavenStyle := false // Ensure this publishes with Ivy conventions.
+
 publishArtifact in(Compile, packageDoc) := false
 publishArtifact in packageDoc := false
 sources in(Compile, doc) := Nil
 
-publishTo := Some(s3resolver.value("LiveSafe", s3("livesafe-artifacts/ivy2")).withIvyPatterns)
+credentials in ThisBuild += Credentials(Path.userHome / ".livesafe" / "credentials.properties")
+
+publishMavenStyle in ThisBuild := true
+publishTo in ThisBuild := Some("LiveSafe Internal (Maven, local)" at "https://livesafe.jfrog.io/livesafe/livesafe-internal-maven-local")
+resolvers in ThisBuild += "LiveSafe Engineering (Maven)" at "https://livesafe.jfrog.io/livesafe/livesafe-engineering-generic"
 
 libraryDependencies ++= Seq(
   lagomScaladslClient,

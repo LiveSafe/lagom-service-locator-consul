@@ -1,8 +1,12 @@
 version: 2
+
 jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk
+      - image: consul
+        ports:
+          - 8500:8500
 
     steps:
       - checkout
